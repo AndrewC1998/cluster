@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Statistics Clinic</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Andrew Connell" />
+    <script src="index_files/header-attrs-2.17/header-attrs.js"></script>
+    <script src="index_files/xaringanExtra-progressBar-0.0.1/progress-bar.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Statistics Clinic
+]
+.subtitle[
+## How to Make R Code Efficient
+]
+.author[
+### Andrew Connell
+]
+.date[
+### 02 March, 2023
+]
+
+---
+
+
+<style>.xe__progress-bar__container {
+  bottom:0;
+  opacity: 1;
+  position:absolute;
+  right:0;
+  left: 0;
+}
+.xe__progress-bar {
+  height: 0.25em;
+  background-color: #035AA6;
+  width: calc(var(--slide-current) / var(--slide-total) * 100%);
+}
+.remark-visible .xe__progress-bar {
+  animation: xe__progress-bar__wipe 200ms forwards;
+  animation-timing-function: cubic-bezier(.86,0,.07,1);
+}
+@keyframes xe__progress-bar__wipe {
+  0% { width: calc(var(--slide-previous) / var(--slide-total) * 100%); }
+  100% { width: calc(var(--slide-current) / var(--slide-total) * 100%); }
+}</style>
+
+&lt;!-- edit name1 and name2 in the YAML above --&gt;
+
+# Why choose R?
+
+&lt;br /&gt;
+&lt;br /&gt;
+--
+
+* **R** generally requires you to write fewer lines of code than in **C** or **Python**.
+
+--
+
+* There's a lot of pre-existing packages saving you time.
+
+--
+
+* Lots of amazing visualisation tools.
+
+--
+
+* Most of your supervisors will have their own projects in **R** already.
+
+--
+
+* **RMarkdown** allows for seamless note taking and code implementations.
+
+--
+
+.bold[There are drawbacks though!]
+
+--
+
+* **R** can be computationally expensive.
+
+--
+
+* If you are more proficient in another language then it might not be worth learning it.
+---
+
+# Overview
+
+&lt;br /&gt;
+&lt;br /&gt;
+--
+
+* Building your own **R** Projects and Packages
+
+--
+
+* General Tips
+
+--
+
+* Vectorising
+
+--
+
+* Parallel Processing
+
+--
+
+* Memory Management
+
+--
+
+* Profiling/Benchmarking
+
+--
+
+* Wrapper Functions
+
+---
+class: center, middle
+
+# A Warning
+
+"Premature optimisation is the root of all evil" - Donald Knuth
+
+---
+
+# Package it!
+
+&lt;br /&gt;
+--
+
+* Organisation: **R** packages provide a structured way to organise and document your code. 
+--
+Each package contains a well-defined set of functions and data, with clear documentation and examples.
+
+--
+
+* Reusability: **R** packages can be easily shared and reused by others. 
+
+--
+
+* Testing: **R** packages make it easy to write and run tests for your code.
+
+--
+
+* Version control: **R** packages can be easily managed using version control tools like Git. 
+
+--
+
+* Reproducibility: **R** packages provide a way to ensure that your code is reproducible.
+
+---
+
+# Efficiency in Practise
+
+--
+
+
+```r
+# Inefficient code
+sum &lt;- 0
+for (i in 1:100) {
+  if (i %% 2 == 0) {
+    sum &lt;- sum + i
+  }
+}
+```
+
+--
+
+&lt;br /&gt;
+
+
+```r
+# More efficient code
+sum &lt;- 0
+for (i in seq(from = 2, to = 100, by = 2)) {
+  sum &lt;- sum + i
+}
+```
+
+--
+
+In the more efficient code, we take advantage of the fact that every other number is even, and we only iterate over those numbers. But, could this be more efficient?
+
+---
+
+# Built in Functions
+
+--
+
+
+```r
+# Inefficient code
+df1 &lt;- data.frame(id = c(1, 2, 3, 4), name = c("Alice", "Bob", 
+  "Charlie", "David"))
+df2 &lt;- data.frame(id = c(2, 3, 5), age = c(25, 30, 35))
+
+merged_df &lt;- data.frame()
+for (i in 1:nrow(df1)) {
+  for (j in 1:nrow(df2)) {
+    if (df1[i, "id"] == df2[j, "id"]) {
+      merged_df &lt;- rbind(merged_df, cbind(df1[i, ], df2[j, ]))
+    }
+  }
+}
+```
+
+--
+
+
+```r
+# More efficient code
+merged_df &lt;- merge(df1, df2, by = "id", all.x = TRUE)
+```
+
+--
+
+Built in functions have really sped up the process now.
+
+---
+
+# Vectorisation
+
+&lt;br/&gt;
+
+--
+
+* Vectorised code allows **R** to take advantage of its built-in optimised functions, which are implemented in **C** and **Fortran**.
+
+--
+
+* Vectorised operations can often be performed using fewer lines of code, which makes the code easier to read and debug.
+
+--
+
+* Vectorised code eliminates the need for explicit looping constructs, which can be time-consuming and memory-intensive in **R**.
+
+--
+
+* Vectorised code is more amenable to parallelisation, which can further improve performance on multi-core systems.
+
+---
+
+# Example 1: Summing a Vector
+
+--
+
+Unvectorised code:
+
+
+```r
+# Create a vector
+x &lt;- c(1, 2, 3, 4, 5)
+# Initialise an empty value
+sum_x &lt;- 0
+for (i in 1:length(x)) {
+  # Iteratively sum
+  sum_x &lt;- sum_x + x[i]
+}
+sum_x
+```
+
+--
+
+Vectorised code:
+
+
+```r
+# Create a vector
+x &lt;- c(1, 2, 3, 4, 5)
+# Use built-in vectorised function.
+sum(x)
+```
+
+---
+
+# Example 2: Element-wise Multiplication
+
+--
+
+Unvectorised code:
+
+
+```r
+# Create vectors
+x &lt;- c(1, 2, 3, 4, 5); y &lt;- c(6, 7, 8, 9, 10)
+z &lt;- numeric(length(x))
+#
+for (i in 1:length(x)) {
+  z[i] &lt;- x[i] * y[i]
+}
+```
+
+--
+
+Vectorised code:
+
+
+```r
+x &lt;- c(1, 2, 3, 4, 5); y &lt;- c(6, 7, 8, 9, 10)
+#
+z &lt;- x * y
+z
+```
+
+---
+
+# Example 3: Conditional Selection
+
+--
+
+Unvectorised code:
+
+
+```r
+x &lt;- c(1, 2, 3, 4, 5)
+selected_x &lt;- numeric(length(x))
+count &lt;- 0
+#
+for (i in 1:length(x)) {
+  if (x[i] &gt; 2) {
+    count &lt;- count + 1
+    selected_x[count] &lt;- x[i]
+  }
+}
+#
+selected_x[1:count]
+```
+
+--
+
+Vectorised code:
+
+
+```r
+x &lt;- c(1, 2, 3, 4, 5)
+selected_x &lt;- x[x &gt; 2]
+selected_x
+```
+
+---
+# For Loops
+
+&lt;br/&gt;
+
+--
+
+In each of these examples, the unvectorised code uses a for loop to iterate over each element of a vector and perform some operation. Some things to note:
+
+&lt;br/&gt;
+
+--
+
+* For loops are easy to write but often can be vectorised.
+
+&lt;br/&gt;
+
+--
+
+* For loops can be difficult to read and debug, especially when dealing with complex nested loops or branching structures.
+
+&lt;br/&gt;
+
+--
+
+* Think of them as a last resort option for efficiency but a good starting point for ideas.
+
+---
+
+# Loop-Hiding 
+
+--
+
+&lt;br/&gt;
+
+The apply functions are marginally faster than regular for loops, but still perform operations in **R**, rather than passing the function off to **C**.
+
+--
+
+In **R**, there are a number of functions in the apply family that allow you to apply a function to a collection of data in a concise and efficient way. These functions include: 
+
+--
+
+* **apply()** - applies a function to the margins of a matrix or array, either row-wise or column-wise.
+
+--
+
+* **sapply()** and **lapply()** - applies a function to each element of a list or vector, with sapply() attempting to simplify the result into a vector or matrix.
+
+--
+
+* **tapply()** - applies a function to subsets of a vector, using one or more factors to define the subsets.
+
+---
+
+# Example 1: Matrix Row Sums
+
+--
+
+Non-apply code:
+
+
+```r
+m &lt;- matrix(runif(100000), ncol = 1000)
+sums &lt;- numeric(nrow(m))
+for (i in 1:nrow(m)) {
+  sums[i] &lt;- sum(m[i,])
+}
+sums
+```
+
+--
+
+apply code:
+
+
+```r
+m &lt;- matrix(runif(100000), ncol = 1000)
+sums &lt;- apply(m, 1, sum)
+sums
+```
+
+---
+
+# Example 2: Functions on a List
+
+--
+
+Non-lapply code:
+
+
+```r
+lst &lt;- list(1:10, 11:20, 21:30)
+result &lt;- list()
+for (i in 1:length(lst)) {
+  result[[i]] &lt;- lapply(lst[[i]], function(x) x^2)
+}
+result
+```
+
+--
+
+lapply code:
+
+
+```r
+lst &lt;- list(1:10, 11:20, 21:30)
+result &lt;- lapply(lst, function(x) x^2)
+result
+```
+
+---
+
+# Parallelisation
+
+--
+
+Parallel computing involves splitting a large computational task into smaller, independent sub-tasks that can be executed simultaneously on multiple processors or cores. The benefits are:
+
+--
+
+* Faster processing time
+
+--
+
+* Scalability
+
+--
+
+* Flexibility
+
+--
+
+* Cost-effective
+
+--
+
+Parallel libraries in R:
+
+
+```r
+library(parallel) # Base package in r
+library(foreach) 
+library(doParallel)
+library(future)
+```
+
+---
+
+# Example 1: Mean of a List
+
+--
+
+Non-parallelised code:
+
+
+```r
+x &lt;- list(rnorm(100000), rnorm(100000), rnorm(100000))
+result &lt;- list()
+for (i in 1:length(x)) {
+  result[[i]] &lt;- mean(x[[i]])
+}
+result
+```
+
+--
+
+Parallelised code:
+
+
+```r
+library(foreach); library(doParallel)
+
+cl &lt;- makeCluster(detectCores())
+result &lt;- foreach(i = 1:length(x), .packages = 'stats') %dopar% {
+  mean(x[[i]])
+}
+stopCluster(cl)
+result
+```
+
+---
+
+# Example 2: Matrix Multiplication
+
+--
+
+Non-parallelised code:
+
+
+```r
+A &lt;- matrix(runif(2000), nrow = 1000, ncol = 2)
+B &lt;- matrix(runif(2000), nrow = 2, ncol = 1000)
+result &lt;- matrix(0, nrow = 1000, ncol = 1000)
+for (i in 1:1000){
+  for (j in 1:1000){
+    result[i, j] &lt;- sum(A[i,] * B[,j])
+  }
+}
+result
+```
+
+--
+
+Parallelised code:
+
+
+```r
+cl &lt;- makeCluster(detectCores())
+result &lt;- foreach(i = 1:1000, .combine = 'c') %dopar% {
+  apply(B, 2, function(x) sum(A[i,] * x))
+}
+stopCluster(cl)
+matrix(result, nrow = 1000, ncol = 1000)
+```
+
+---
+
+# Data.table Package
+
+&lt;br/&gt;
+
+--
+
+Benefits of using the **data.table** package in **R**:
+
+--
+
+* Speed: **data.table** is known for its speed and efficiency in handling large datasets. 
+
+--
+
+* Memory efficiency: **data.table** is designed to use memory efficiently.
+
+--
+
+* Syntax: **data.table** has a syntax that is similar to **SQL**.
+
+--
+
+* Parallel processing: **data.table** can take advantage of multi-core processors to perform operations in parallel.
+
+--
+
+* Community support: **data.table** has a large and active community of users and developers!
+
+---
+
+# Data.table Example
+
+--
+Classic methods:
+
+
+```r
+library(dplyr)
+df &lt;- data.frame(x = rep(1:10, 10), y = rep(1:10, each = 10),
+                 z = rnorm(100))
+# Group the data and summarise
+result &lt;- df %&gt;%
+  group_by(x, y) %&gt;%
+  summarize(mean_z = mean(z),
+            sd_z = sd(z))
+```
+
+--
+
+Using **data.table**:
+
+
+```r
+library(data.table)
+# Create a data table with three columns
+dt &lt;- data.table(x = rep(1:10, 10), y = rep(1:10, each = 10),
+                 z = rnorm(100))
+# Group the data and summarise
+result &lt;- dt[, .(mean_z = mean(z),
+                 sd_z = sd(z)), by = .(x, y)]
+```
+
+---
+
+# Profiling/Benchmarking
+
+&lt;br/&gt;
+
+--
+
+Profiling and benchmarking are important tools for identifying performance bottlenecks and optimising the speed and efficiency of your **R** code. This is useful because:
+
+--
+
+* Performance optimisation - Profiling and benchmarking identifies areas of code that are consuming the most time.
+
+--
+
+* Scaling - As the size of your datasets and the complexity of your computations increase, profiling and benchmarking can help ensure that your code remains efficient.
+
+--
+
+* Quality assurance - Profiling and benchmarking can help identify performance issues and bottlenecks in your code.
+
+---
+
+# Profiling
+
+--
+
+Use the **profvis** package to create a visual profile of your code. 
+--
+This can be done in the following way:
+
+
+```r
+library(profvis)
+
+profvis({
+  # Your code here
+})
+#
+# Alternatively
+#
+Rprof("profile.out")
+# Your code here
+Rprof(NULL)
+summaryRprof("profile.out")
+```
+
+---
+
+# Benchmarking
+
+--
+
+Use the **microbenchmark** package to compare the performance of different implementations of a particular task. 
+
+--
+
+
+```r
+library(microbenchmark)
+# Example 1
+f1 &lt;- function(x) sum(x * 2)
+# Example 2
+f2 &lt;- function(x) sum(x)*2
+# Benchmarking
+microbenchmark(f1(1:10000), f2(1:10000))
+#
+# Alternatively
+# 
+# Your code here
+system.time({
+  # Your code here
+})
+```
+
+---
+
+# Wrapping
+
+&lt;br /&gt;
+&lt;br /&gt;
+--
+
+* Sometimes **R** code just isn’t good enough. (This is a last resort!)
+
+--
+
+* You can outsource **R** code to **C**, **C++**, **Fortran**, **Java** or **Python**.
+
+--
+
+* This is best to do after you've attempted profiling and figured out your bottlenecks are unavoidable.
+
+--
+
+* There are many ways to wrap functions but I will show you **RCpp**.
+
+--
+
+* **Rcpp** makes it very simple to connect **C++** to **R** and plenty of documentation already exists.
+
+---
+
+# Wrapping
+
+--
+
+
+```r
+# Load the wrapper library
+library(Rcpp)
+
+# Create a C++ function in R
+cppFunction('int add(int x, int y, int z) {
+  int sum = x + y + z;
+  return sum;
+}')
+# add works like a regular R function
+add
+```
+
+```
+## function (x, y, z) 
+## .Call(&lt;pointer: 0x107934d00&gt;, x, y, z)
+```
+
+```r
+add(1, 2, 3)
+```
+
+```
+## [1] 6
+```
+
+---
+
+# Byte Compilation
+
+&lt;br/&gt;
+
+--
+
+* Improved performance: Speeds up the execution of **R** code by compiling it to bytecode.
+
+--
+
+* Reduced memory usage: Reduces the memory footprint of **R**.
+
+--
+
+* Cross-platform compatibility: Code runs consistently across different platforms, since bytecode is platform-independent.
+
+--
+
+* Enhanced security: Protects code from unauthorised access and modification by obfuscating the code and making it harder to reverse-engineer.
+
+---
+
+# Byte Example: **compiler**
+
+--
+
+Before byte compilation:
+
+
+```r
+# A simple function that calculates the sum of the first n integers
+sum_first_n &lt;- function(n){
+  sum &lt;- 0
+  for(i in 1:n){sum &lt;- sum + i}
+  return(sum)
+}
+# Calculate the sum of the first 10,000 integers
+sum_first_n(10000)
+```
+
+--
+
+Using the **compiler** package:
+
+
+```r
+library(compiler)
+# Compile the function using the bytecode compiler
+sum_first_n_compiled &lt;- cmpfun(sum_first_n)
+# Calculate the sum of the first 10,000 integers
+sum_first_n_compiled(10000)
+```
+
+---
+
+# Byte Example: **inline**
+
+--
+
+Before byte compilation:
+
+
+```r
+# A function that calculates the nth Fibonacci number recursively
+fib &lt;- function(n) {
+  if (n &lt; 2) return(n)
+  return(fib(n - 1) + fib(n - 2))
+}
+# Calculate the 30th Fibonacci number
+fib(30)
+```
+
+--
+
+Using the **inline** package:
+
+
+```r
+library(inline)
+# Compile the function to bytecode using the inline package
+fib_compiled &lt;- cfunction(sig = c(n = "integer"), body = '
+  if (n &lt; 2) return(n);
+  return(fib_compiled(n - 1) + fib_compiled(n - 2));
+', language = "C++")
+# Calculate the 30th Fibonacci number using the compiled function
+fib_compiled(30)
+```
+
+---
+# Just-In-Time (JIT) Compilation
+
+--
+
+Just-In-Time (JIT) compilation and Bytecode compilation are two different approaches to optimising the execution of code. 
+--
+Here are the main differences between them:
+
+--
+
+* Timing of compilation: JIT compilers dynamically compile code at runtime, while bytecode compilers compile code ahead of time. 
+
+--
+
+* Compilation target: JIT compilers typically compile code to machine code, while bytecode compilers compile code to a platform-independent bytecode format.
+
+--
+
+* Memory usage: JIT compilers can optimise memory usage by only compiling the code that is actually executed, rather than compiling the entire program in advance.
+
+--
+
+So, why don't we just use this instead?
+
+---
+
+# JIT Example
+
+--
+
+&lt;br/&gt;
+&lt;br/&gt;
+
+JIT compilation using the **rjit** package:
+
+
+```r
+library(rjit)
+
+# Enable JIT compilation
+enableJIT(2)
+
+# Compile and execute the function using JIT compilation
+sum_first_n_jit &lt;- rjit(sum_first_n)
+sum_first_n_jit(10000)
+```
+
+---
+
+
+# Extra Reading
+
+--
+
+![List of Useful Resources](figs/githubpage.png)
+
+---
+class: center, middle
+
+# Questions
+
+Please ask questions or submit them at [menti.com](https://www.menti.com/alt3tyaqfpoa) using code **2147 9825**
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"slideNumberFormat": "%current%/%total%"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<style type="text/css">.countdown {
+  background: transparent;
+  position: absolute;
+  cursor: pointer;
+  font-size: 2em;
+  line-height: 1.2;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  padding: 0 15px;
+  text-align: center;
+}
+
+code.countdown-time {
+  vertical-align: middle;
+}
+
+.countdown-digits {
+  color: #eaeaea;
+}
+
+.countdown.running {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.countdown.running .countdown-digits {
+  color: grey;
+}
+
+.countdown.finished {
+  border-color: #CC0033;
+  background-color: #5F6A72;
+}
+
+.countdown.finished .countdown-digits {
+  color: #CC0033;
+}
+
+.countdown.running.warning {
+  border-color: #CFAE24;
+  background-color: #E6C229;
+}
+
+.countdown.running.warning .countdown-digits {
+  color: #39300A;
+}
+
+@-webkit-keyframes blink {
+  from {opacity: 1}
+  50% {opacity: 0.1}
+  to {opacity: 1}
+}
+
+@keyframes blink {
+  from {opacity: 1}
+  50% {opacity: 0.1}
+  to {opacity: 1}
+}
+
+.countdown.running.blink-colon .countdown-digits.colon {
+  -webkit-animation: blink 2s steps(1, end) 0s infinite;
+  animation: blink 2s steps(1, end) 0s infinite;
+}
+
+</style>
+
+
+<script>var counters = {timer: {}};
+var update_timer = function(timer, force = false) {
+	var secs = timer.value;
+
+	// check if we should update timer or not
+	noup = timer.div.className.match(/noupdate-\d+/);
+	if (!force && noup != null) {
+	  noup = parseInt(noup[0].match(/\d+$/));
+	  if (secs > noup * 2 && secs % noup > 0) { return; }
+	}
+
+	// should we apply or remove warning class?
+	warnwhen = timer.div.dataset.warnwhen;
+	if (warnwhen && warnwhen > 0) {
+	  if (secs <= warnwhen && !timer.div.classList.contains("warning")) {
+	    timer.div.classList.add("warning");
+	  } else if (secs > warnwhen && timer.div.classList.contains("warning")) {
+	    timer.div.classList.remove("warning");
+	  }
+	}
+
+  var mins = Math.floor(secs / 60); // 1 min = 60 secs
+  secs -= mins * 60;
+
+  // Update HTML
+  timer.min.innerHTML = String(mins).padStart(2, 0);
+  timer.sec.innerHTML = String(secs).padStart(2, 0);
+}
+var countdown = function (e) {
+  target = e.target;
+  if (target.classList.contains("countdown-digits")) {
+    target = target.parentElement;
+  }
+  if (target.tagName == "CODE") {
+    target = target.parentElement;
+  }
+
+  // Init counter
+  if (!counters.timer.hasOwnProperty(target.id)) {
+    counters.timer[target.id] = {};
+    // Set the containers
+	  counters.timer[target.id].min = target.getElementsByClassName("minutes")[0];
+  	counters.timer[target.id].sec = target.getElementsByClassName("seconds")[0];
+  	counters.timer[target.id].div = target;
+  }
+
+  if (!counters.timer[target.id].running) {
+    if (!counters.timer[target.id].end) {
+      counters.timer[target.id].end   = parseInt(counters.timer[target.id].min.innerHTML) * 60;
+		  counters.timer[target.id].end  += parseInt(counters.timer[target.id].sec.innerHTML);
+    }
+
+    counters.timer[target.id].value = counters.timer[target.id].end;
+    update_timer(counters.timer[target.id]);
+    if (counters.ticker) counters.timer[target.id].value += 1;
+
+    // Start if not past end date
+    if (counters.timer[target.id].value > 0) {
+      base_class = target.className.replace(/\s?(running|finished)/, "")
+      target.className = base_class + " running";
+      counters.timer[target.id].running = true;
+
+      if (!counters.ticker) {
+        counters.ticker = setInterval(counter_update_all, 1000);
+      }
+    }
+  } else {
+    // Bump timer value if running & clicked
+    counters.timer[target.id].value += counter_bump_increment(counters.timer[target.id].end);
+    update_timer(counters.timer[target.id], force = true);
+    counters.timer[target.id].value += 1;
+  }
+};
+
+var counter_bump_increment = function(val) {
+  if (val <= 30) {
+    return 5;
+  } else if (val <= 300) {
+    return 15;
+  } else if (val <= 3000) {
+    return 30;
+  } else {
+    return 60;
+  }
+}
+
+var counter_update_all = function() {
+  // Iterate over all running timers
+  for (var i in counters.timer) {
+    // Stop if passed end time
+    console.log(counters.timer[i].id)
+    counters.timer[i].value--;
+    if (counters.timer[i].value <= 0) {
+      counters.timer[i].min.innerHTML = "00";
+      counters.timer[i].sec.innerHTML = "00";
+      counters.timer[i].div.className = counters.timer[i].div.className.replace("running", "finished");
+      counters.timer[i].running = false;
+    } else {
+      // Update
+      update_timer(counters.timer[i]);
+
+      // Play countdown sound if data-audio=true on container div
+      if (counters.timer[i].div.dataset.audio && counters.timer[i].value == 5) {
+        counter_play_sound();
+      }
+    }
+  }
+
+  // If no more running timers, then clear ticker
+  var timerIsRunning = false;
+  for (var t in counters.timer) {
+    timerIsRunning = timerIsRunning || counters.timer[t].running
+  }
+  if (!timerIsRunning) {
+    clearInterval(counters.ticker);
+    counters.ticker = null;
+  }
+}
+
+var counter_play_sound = function() {
+  try {
+    var finished_sound = new Audio('libs/countdown/smb_stage_clear.mp3');
+    finished_sound.play();
+  } catch (e) {
+    try {
+      var finished_sound = new Audio('smb_stage_clear.mp3');
+      finished_sound.play();
+    } catch (e) {
+      console.log("Unable to locate sound file smb_stage_clear.mp3.")
+    }
+  }
+}
+
+var counter_addEventListener = function() {
+  if (!document.getElementsByClassName("countdown").length) {
+    setTimeout(counter_addEventListener, 2);
+    return;
+  }
+  var counter_divs = document.getElementsByClassName("countdown");
+  console.log(counter_divs);
+  for (var i = 0; i < counter_divs.length; i++) {
+    counter_divs[i].addEventListener("click", countdown, false);
+  }
+};
+
+counter_addEventListener();
+</script>
+
+<div class="countdown" id="timer_5ddeaad6" style="bottom:0;z-index:100" data-warnwhen="0"><code class="countdown-time"><span class="countdown-digits minutes">20</span><span class="countdown-digits colon">:</span><span class="countdown-digits seconds">00</span></code>
+</div>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
