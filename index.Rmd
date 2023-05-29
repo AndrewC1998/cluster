@@ -1,12 +1,10 @@
 ---
 title: "Statistics Clinic"
-subtitle: "How to Make R Code Efficient"
+subtitle: "Using Imperial's Clusters"
 author: "Andrew Connell"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   xaringan::moon_reader:
-    includes:
-      after_body: "https://raw.githubusercontent.com/jvcasillas/xaringan_timer/master/timer.html"
     css: xaringan-themer.css
     nature:
       slideNumberFormat: "%current%/%total%"
@@ -23,823 +21,261 @@ params:
 
 <!-- edit name1 and name2 in the YAML above -->
 
-# Why choose R?
+# Why might you need to use the clusters?
 
 <br />
 <br />
---
-
-* **R** generally requires you to write fewer lines of code than in **C** or **Python**.
 
 --
 
-* There's a lot of pre-existing packages saving you time.
+* Using Linux Clusters for better performance in your work.
 
 --
 
-* Lots of amazing visualisation tools.
+* To accomplish large scale computational tasks, simulations, and statistical modelling.
 
 --
 
-* Most of your supervisors will have their own projects in **R** already.
+* Need to access collaborative work or group uses it for resource management.
 
 --
 
-* **RMarkdown** allows for seamless note taking and code implementations.
+* Mostly because your local machine is not up to the task!
 
---
-
-.bold[There are drawbacks though!]
-
---
-
-* **R** can be computationally expensive.
-
---
-
-* If you are more proficient in another language then it might not be worth learning it.
 ---
 
-# Overview
+# What is a Linux Cluster?
 
 <br />
 <br />
 --
 
-* Building your own **R** Projects and Packages
+* A linux cluster is a group of Linux computers, or nodes, working as one system.
 
 --
 
-* General Tips
+* Imperial has many different clusters but not all of them are for you.
 
 --
 
-* Vectorising
+* Make sure you are trying to access the right cluster. 
 
 --
 
-* Parallel Processing
+* [Andy Thomas](http://ic.time-domain.co.uk) is generally the owner and maintainer of the clusters.
+
+---
+# Warnings
+
+<br />
+<br />
+<br />
 
 --
 
-* Memory Management
+* Before using the cluster be familiar with high-performance computing techniques.
+
+<br />
+<br />
 
 --
 
-* Profiling/Benchmarking
-
---
-
-* Wrapper Functions
+* Read the documentation for the cluster before emailing people to ask how it works!
+---
 
 ---
 class: center, middle
 
-# A Warning
-
-"Premature optimisation is the root of all evil" - Donald Knuth
+# Clusters at Imperial
 
 ---
 
-# Package it!
-
-<br />
---
-
-* Organisation: **R** packages provide a structured way to organise and document your code. 
---
-Each package contains a well-defined set of functions and data, with clear documentation and examples.
+# Maths Next Gen Cluster
 
 --
 
-* Reusability: **R** packages can be easily shared and reused by others. 
+The [Maths Next Gen Cluster](https://sysnews.ma.ic.ac.uk/compute-cluster/) is the most used cluster at Imperial.
 
 --
 
-* Testing: **R** packages make it easy to write and run tests for your code.
-
---
-
-* Version control: **R** packages can be easily managed using version control tools like Git. 
-
---
-
-* Reproducibility: **R** packages provide a way to ensure that your code is reproducible.
-
+![Maths Next Gen Cluster](figs/mathsclust.png "Mathematics Clusters"){width=50%}
 ---
 
-# Efficiency in Practise
+# Statistics Cluster
 
 --
 
-```{r, echo=TRUE, include = TRUE, eval = TRUE}
-# Inefficient code
-sum <- 0
-for (i in 1:100) {
-  if (i %% 2 == 0) {
-    sum <- sum + i
-  }
-}
-```
+The [Statistics Cluster](https://sysnews.ma.ic.ac.uk/stats/index.html) is also available to you.
 
 --
 
-<br />
-
-```{r, echo=TRUE, include = TRUE, eval = TRUE}
-# More efficient code
-sum <- 0
-for (i in seq(from = 2, to = 100, by = 2)) {
-  sum <- sum + i
-}
-```
-
---
-
-In the more efficient code, we take advantage of the fact that every other number is even, and we only iterate over those numbers. But, could this be more efficient?
-
+![Maths Next Gen Cluster](figs/statsclust.png "Statistics Clusters"){width=50%}
 ---
 
-# Built in Functions
-
---
-
-```{r, echo=TRUE, include = TRUE, eval = TRUE}
-# Inefficient code
-df1 <- data.frame(id = c(1, 2, 3, 4), name = c("Alice", "Bob", 
-  "Charlie", "David"))
-df2 <- data.frame(id = c(2, 3, 5), age = c(25, 30, 35))
-
-merged_df <- data.frame()
-for (i in 1:nrow(df1)) {
-  for (j in 1:nrow(df2)) {
-    if (df1[i, "id"] == df2[j, "id"]) {
-      merged_df <- rbind(merged_df, cbind(df1[i, ], df2[j, ]))
-    }
-  }
-}
-```
-
---
-
-```{r, echo=TRUE, include = TRUE, eval = TRUE}
-# More efficient code
-merged_df <- merge(df1, df2, by = "id", all.x = TRUE)
-```
-
---
-
-Built in functions have really sped up the process now.
-
----
-
-# Vectorisation
+# Accessing the Cluster
 
 <br/>
 
 --
 
-* Vectorised code allows **R** to take advantage of its built-in optimised functions, which are implemented in **C** and **Fortran**.
+Regardless of the cluster you use the process is basically the same. Here are the steps:
 
 --
 
-* Vectorised operations can often be performed using fewer lines of code, which makes the code easier to read and debug.
+* Email and ask the maintainer of the cluster for access. 
 
 --
 
-* Vectorised code eliminates the need for explicit looping constructs, which can be time-consuming and memory-intensive in **R**.
+* Once given access, ensure you are either on site or connected to the IC VPN.
 
 --
 
-* Vectorised code is more amenable to parallelisation, which can further improve performance on multi-core systems.
+* Then, type a command of the form **ssh your_username@cluster_hostname** into the terminal.
+
+--
+
+* You then are prompted for a password which is normally randomly generated that you then set the first time you login.
+
+--
+
+* **You are now connected**
+
+--
+
+* Always logout when you're finished.
 
 ---
 
-# Example 1: Summing a Vector
-
---
-
-Unvectorised code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-# Create a vector
-x <- c(1, 2, 3, 4, 5)
-# Initialise an empty value
-sum_x <- 0
-for (i in 1:length(x)) {
-  # Iteratively sum
-  sum_x <- sum_x + x[i]
-}
-sum_x
-```
-
---
-
-Vectorised code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-# Create a vector
-x <- c(1, 2, 3, 4, 5)
-# Use built-in vectorised function.
-sum(x)
-```
-
----
-
-# Example 2: Element-wise Multiplication
-
---
-
-Unvectorised code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-# Create vectors
-x <- c(1, 2, 3, 4, 5); y <- c(6, 7, 8, 9, 10)
-z <- numeric(length(x))
-#
-for (i in 1:length(x)) {
-  z[i] <- x[i] * y[i]
-}
-```
-
---
-
-Vectorised code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-x <- c(1, 2, 3, 4, 5); y <- c(6, 7, 8, 9, 10)
-#
-z <- x * y
-z
-```
-
----
-
-# Example 3: Conditional Selection
-
---
-
-Unvectorised code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-x <- c(1, 2, 3, 4, 5)
-selected_x <- numeric(length(x))
-count <- 0
-#
-for (i in 1:length(x)) {
-  if (x[i] > 2) {
-    count <- count + 1
-    selected_x[count] <- x[i]
-  }
-}
-#
-selected_x[1:count]
-```
-
---
-
-Vectorised code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-x <- c(1, 2, 3, 4, 5)
-selected_x <- x[x > 2]
-selected_x
-```
-
----
-# For Loops
+# Transferring Files
 
 <br/>
 
 --
 
-In each of these examples, the unvectorised code uses a for loop to iterate over each element of a vector and perform some operation. Some things to note:
+SCP stands for Secure Copy Protocol and is a way to securely transfer files. In general:
+
+--
+
+* Local to Remote: **scp local_file username@hostname:remote_directory/**
+
+* Remote to Local: **scp username@hostname:remote_file local_directory/**
+
+--
+
+Always ensure that the correct path of source and destination are being used.
+
+--
+
+Note also:
+
+* Use \* for transferring multiple files.
+* Use **-r** option to transfer directories.
+
+---
+
+# Queueing Jobs
 
 <br/>
 
 --
 
-* For loops are easy to write but often can be vectorised.
+A queueing system exists for task management and to share resources! Common tools for this are Slurm, TORQUE, SGE. The preference at Imperial (I think) is TORQUE. This allows you to 
+
+--
+
+* Submit jobs and leave them in the queue so when resources become available the job automatically starts.
+
+--
+
+* Monitor the status of your jobs.
+
+--
+
+* Delete a job before its completion.
+
+--
+
+There is other stuff it can do as well but these are the commands that are necessary.
+
+---
+
+# Submitting Jobs to the Queue
 
 <br/>
 
 --
 
-* For loops can be difficult to read and debug, especially when dealing with complex nested loops or branching structures.
+So once you have used **scp** to get the file you wish to run onto the cluster, it then needs to be run. Do this by:
+
+--
+
+* Use **qsub** command to submit jobs. For instance, **qsub my_script.sh**
+
+--
+
+The job is then added to the queue and is given an ID. The clusters can be set up to give you status updates (read the full documentation or email me). However, if you are logged on:
+
+--
+
+* Use **qstat** command to check the status of your job.
+
+--
+
+If you have realised you no longer want a file to run, use **qdel** to terminate the task.
+
+---
+
+# Retrieving the Output
+
+<br/>
+
+--
+By default, the output file is usually stored in the job submission directory. You can use **cat** or **less** to view your output. Further to this:
+
+* **cat job_name.ojob_id** is to view output itself.
+
+* **cat job_name.ejob_id** is to view the error logs.
+ 
+--
+
+Once you are happy with the output, then **scp** the file back to your local machine.
+
+---
+
+# Final Tips and Good Practices
+
+<br/>
+--
+
+* Always log out!
 
 <br/>
 
 --
 
-* Think of them as a last resort option for efficiency but a good starting point for ideas.
-
----
-
-# Loop-Hiding 
-
---
-
-<br/>
-
-The apply functions are marginally faster than regular for loops, but still perform operations in **R**, rather than passing the function off to **C**.
-
---
-
-In **R**, there are a number of functions in the apply family that allow you to apply a function to a collection of data in a concise and efficient way. These functions include: 
-
---
-
-* **apply()** - applies a function to the margins of a matrix or array, either row-wise or column-wise.
-
---
-
-* **sapply()** and **lapply()** - applies a function to each element of a list or vector, with sapply() attempting to simplify the result into a vector or matrix.
-
---
-
-* **tapply()** - applies a function to subsets of a vector, using one or more factors to define the subsets.
-
----
-
-# Example 1: Matrix Row Sums
-
---
-
-Non-apply code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-m <- matrix(runif(100000), ncol = 1000)
-sums <- numeric(nrow(m))
-for (i in 1:nrow(m)) {
-  sums[i] <- sum(m[i,])
-}
-sums
-```
-
---
-
-apply code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-m <- matrix(runif(100000), ncol = 1000)
-sums <- apply(m, 1, sum)
-sums
-```
-
----
-
-# Example 2: Functions on a List
-
---
-
-Non-lapply code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-lst <- list(1:10, 11:20, 21:30)
-result <- list()
-for (i in 1:length(lst)) {
-  result[[i]] <- lapply(lst[[i]], function(x) x^2)
-}
-result
-```
-
---
-
-lapply code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-lst <- list(1:10, 11:20, 21:30)
-result <- lapply(lst, function(x) x^2)
-result
-```
-
----
-
-# Parallelisation
-
---
-
-Parallel computing involves splitting a large computational task into smaller, independent sub-tasks that can be executed simultaneously on multiple processors or cores. The benefits are:
-
---
-
-* Faster processing time
-
---
-
-* Scalability
-
---
-
-* Flexibility
-
---
-
-* Cost-effective
-
---
-
-Parallel libraries in R:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-library(parallel) # Base package in r
-library(foreach) 
-library(doParallel)
-library(future)
-```
-
----
-
-# Example 1: Mean of a List
-
---
-
-Non-parallelised code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-x <- list(rnorm(100000), rnorm(100000), rnorm(100000))
-result <- list()
-for (i in 1:length(x)) {
-  result[[i]] <- mean(x[[i]])
-}
-result
-```
-
---
-
-Parallelised code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-library(foreach); library(doParallel)
-
-cl <- makeCluster(detectCores())
-result <- foreach(i = 1:length(x), .packages = 'stats') %dopar% {
-  mean(x[[i]])
-}
-stopCluster(cl)
-result
-```
-
----
-
-# Example 2: Matrix Multiplication
-
---
-
-Non-parallelised code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-A <- matrix(runif(2000), nrow = 1000, ncol = 2)
-B <- matrix(runif(2000), nrow = 2, ncol = 1000)
-result <- matrix(0, nrow = 1000, ncol = 1000)
-for (i in 1:1000){
-  for (j in 1:1000){
-    result[i, j] <- sum(A[i,] * B[,j])
-  }
-}
-result
-```
-
---
-
-Parallelised code:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-cl <- makeCluster(detectCores())
-result <- foreach(i = 1:1000, .combine = 'c') %dopar% {
-  apply(B, 2, function(x) sum(A[i,] * x))
-}
-stopCluster(cl)
-matrix(result, nrow = 1000, ncol = 1000)
-```
-
----
-
-# Data.table Package
+* Regularly clean old files and delete what you don't need!
 
 <br/>
 
 --
 
-Benefits of using the **data.table** package in **R**:
-
---
-
-* Speed: **data.table** is known for its speed and efficiency in handling large datasets. 
-
---
-
-* Memory efficiency: **data.table** is designed to use memory efficiently.
-
---
-
-* Syntax: **data.table** has a syntax that is similar to **SQL**.
-
---
-
-* Parallel processing: **data.table** can take advantage of multi-core processors to perform operations in parallel.
-
---
-
-* Community support: **data.table** has a large and active community of users and developers!
-
----
-
-# Data.table Example
-
---
-Classic methods:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-library(dplyr)
-df <- data.frame(x = rep(1:10, 10), y = rep(1:10, each = 10),
-                 z = rnorm(100))
-# Group the data and summarise
-result <- df %>%
-  group_by(x, y) %>%
-  summarize(mean_z = mean(z),
-            sd_z = sd(z))
-```
-
---
-
-Using **data.table**:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-library(data.table)
-# Create a data table with three columns
-dt <- data.table(x = rep(1:10, 10), y = rep(1:10, each = 10),
-                 z = rnorm(100))
-# Group the data and summarise
-result <- dt[, .(mean_z = mean(z),
-                 sd_z = sd(z)), by = .(x, y)]
-```
-
----
-
-# Profiling/Benchmarking
+* Don't overload the system, respect shared resources.
 
 <br/>
 
 --
 
-Profiling and benchmarking are important tools for identifying performance bottlenecks and optimising the speed and efficiency of your **R** code. This is useful because:
-
---
-
-* Performance optimisation - Profiling and benchmarking identifies areas of code that are consuming the most time.
-
---
-
-* Scaling - As the size of your datasets and the complexity of your computations increase, profiling and benchmarking can help ensure that your code remains efficient.
-
---
-
-* Quality assurance - Profiling and benchmarking can help identify performance issues and bottlenecks in your code.
-
----
-
-# Profiling
-
---
-
-Use the **profvis** package to create a visual profile of your code. 
---
-This can be done in the following way:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-library(profvis)
-
-profvis({
-  # Your code here
-})
-#
-# Alternatively
-#
-Rprof("profile.out")
-# Your code here
-Rprof(NULL)
-summaryRprof("profile.out")
-```
-
----
-
-# Benchmarking
-
---
-
-Use the **microbenchmark** package to compare the performance of different implementations of a particular task. 
-
---
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-library(microbenchmark)
-# Example 1
-f1 <- function(x) sum(x * 2)
-# Example 2
-f2 <- function(x) sum(x)*2
-# Benchmarking
-microbenchmark(f1(1:10000), f2(1:10000))
-#
-# Alternatively
-# 
-# Your code here
-system.time({
-  # Your code here
-})
-```
-
----
-
-# Wrapping
-
-<br />
-<br />
---
-
-* Sometimes **R** code just isn’t good enough. (This is a last resort!)
-
---
-
-* You can outsource **R** code to **C**, **C++**, **Fortran**, **Java** or **Python**.
-
---
-
-* This is best to do after you've attempted profiling and figured out your bottlenecks are unavoidable.
-
---
-
-* There are many ways to wrap functions but I will show you **RCpp**.
-
---
-
-* **Rcpp** makes it very simple to connect **C++** to **R** and plenty of documentation already exists.
-
----
-
-# Wrapping
-
---
-
-```{r, echo=TRUE, include = TRUE, eval = TRUE, dpi=300, fig.width=8,fig.height=10,fig.cap="\\label{fig:1}RCPP"}
-# Load the wrapper library
-library(Rcpp)
-
-# Create a C++ function in R
-cppFunction('int add(int x, int y, int z) {
-  int sum = x + y + z;
-  return sum;
-}')
-# add works like a regular R function
-add
-add(1, 2, 3)
-```
-
----
-
-# Byte Compilation
+* Keep your credentials secure, don't share sensitive information.
 
 <br/>
 
 --
 
-* Improved performance: Speeds up the execution of **R** code by compiling it to bytecode.
-
---
-
-* Reduced memory usage: Reduces the memory footprint of **R**.
-
---
-
-* Cross-platform compatibility: Code runs consistently across different platforms, since bytecode is platform-independent.
-
---
-
-* Enhanced security: Protects code from unauthorised access and modification by obfuscating the code and making it harder to reverse-engineer.
-
----
-
-# Byte Example: **compiler**
-
---
-
-Before byte compilation:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-# A simple function that calculates the sum of the first n integers
-sum_first_n <- function(n){
-  sum <- 0
-  for(i in 1:n){sum <- sum + i}
-  return(sum)
-}
-# Calculate the sum of the first 10,000 integers
-sum_first_n(10000)
-```
-
---
-
-Using the **compiler** package:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-library(compiler)
-# Compile the function using the bytecode compiler
-sum_first_n_compiled <- cmpfun(sum_first_n)
-# Calculate the sum of the first 10,000 integers
-sum_first_n_compiled(10000)
-```
-
----
-
-# Byte Example: **inline**
-
---
-
-Before byte compilation:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-# A function that calculates the nth Fibonacci number recursively
-fib <- function(n) {
-  if (n < 2) return(n)
-  return(fib(n - 1) + fib(n - 2))
-}
-# Calculate the 30th Fibonacci number
-fib(30)
-```
-
---
-
-Using the **inline** package:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-library(inline)
-# Compile the function to bytecode using the inline package
-fib_compiled <- cfunction(sig = c(n = "integer"), body = '
-  if (n < 2) return(n);
-  return(fib_compiled(n - 1) + fib_compiled(n - 2));
-', language = "C++")
-# Calculate the 30th Fibonacci number using the compiled function
-fib_compiled(30)
-```
-
----
-# Just-In-Time (JIT) Compilation
-
---
-
-Just-In-Time (JIT) compilation and Bytecode compilation are two different approaches to optimising the execution of code. 
---
-Here are the main differences between them:
-
---
-
-* Timing of compilation: JIT compilers dynamically compile code at runtime, while bytecode compilers compile code ahead of time. 
-
---
-
-* Compilation target: JIT compilers typically compile code to machine code, while bytecode compilers compile code to a platform-independent bytecode format.
-
---
-
-* Memory usage: JIT compilers can optimise memory usage by only compiling the code that is actually executed, rather than compiling the entire program in advance.
-
---
-
-So, why don't we just use this instead?
-
----
-
-# JIT Example
-
---
-
-<br/>
-<br/>
-
-JIT compilation using the **rjit** package:
-
-```{r, echo=TRUE, include = TRUE, eval = FALSE, dpi=300}
-library(rjit)
-
-# Enable JIT compilation
-enableJIT(2)
-
-# Compile and execute the function using JIT compilation
-sum_first_n_jit <- rjit(sum_first_n)
-sum_first_n_jit(10000)
-```
-
----
-
-
-# Extra Reading
-
---
-
-![List of Useful Resources](figs/githubpage.png)
+* Ask for help when needed but, consider asking one another before going straight to Andy Thomas. 
 
 ---
 class: center, middle
 
 # Questions
 
-Please ask questions or submit them at [menti.com](https://www.menti.com/alt3tyaqfpoa) using code **2147 9825**
+Please ask questions or submit them at [menti.com](https://www.menti.com/al83uv4zs6br) using code **5606 7649**
